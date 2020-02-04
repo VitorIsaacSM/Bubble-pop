@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Bubble Pop</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+    <div id="tab">
+        <div>
+            <span id="score"></span>
+            <span id="high-score"></span>
+        </div>
+        <span id="msg" class="hidden">Não deixe as bolhas chegarem à superfície!</span>
+        <span id="pause">Start</span>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/102/three.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.2/TweenMax.min.js"></script>
+    <script>
+        if(!localStorage.getItem('highScore')) {
+            localStorage.setItem('highScore', '0');
+        }
+        var pause = true;
+        var gameEnded = false;
+        var bubbleIndex = 0;
+        var score = 0;
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+
+
+        updateScore = () => {
+            document.getElementById('score').textContent = `Score: ${score}`;
+            document.getElementById('high-score').textContent = `High-Score: ${localStorage.getItem('highScore')}`;
+        }
+
+
+        updateScore();
+
+        var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setClearColor(0x000000, 0);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        document.body.appendChild(renderer.domElement);
+
+        var pauseButton = document.getElementById('pause');
+        pauseButton.addEventListener('click', () => {
+            document.getElementById('msg').classList.replace('pisca', 'hidden');
+            pause = !pause
+            if(!pause && score === 0) {
+                document.getElementById('msg').classList.replace('hidden', 'pisca');
+            }
+            if(pauseButton.textContent === 'Start') {
+                pauseButton.textContent = 'Play/Pause'
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+
+        function getRandomNumberWithRange(min, max) {
+            return Math.floor(Math.random() * (+max - +min)) + +min;
+        }
+
+        function resetGame() {
+            pauseButton.textContent = 'Start'
+            bubbles.forEach(b => scene.remove(b));
+            bubbles = [];
+            pause = true;
+            if(score > +localStorage.getItem('highScore')) {
+                localStorage.setItem('highScore', score.toString());
+            }
+            score = 0;
+            updateScore();
+            document.getElementById('msg').classList.replace('pisca', 'hidden');
+        }
+
+        var bubbles = [];
+        var geometry = new THREE.SphereGeometry(1, 25, 25);
+        var speedMultiplier = 1.0001;
+
+        createSingleBubble = () => {
+            if (!document.hasFocus() || pause) {
+                return;
+            }
+            const newBubble = new THREE.Mesh(geometry);
+            newBubble.position.set(getRandomNumberWithRange(-6, 6), -10, 0);
+            newBubble.material = new THREE.MeshPhongMaterial({ color: '#34b1eb', transparent: true, opacity: getRandomNumberWithRange(2, 8) / 10 })
+            newBubble.idBubble = bubbleIndex;
+            bubbleIndex++;
+            bubbles.push(newBubble);
+            scene.add(newBubble);
+        }
+
+        setInterval(() => requestAnimationFrame(createSingleBubble), 1000 / speedMultiplier);
+
+        var raycaster = new THREE.Raycaster();
+        var mouse = new THREE.Vector2();
+
+
+        this.tl = new TimelineMax().delay(.3);
+        var light = new THREE.SpotLight(0xFFFFFF, 1, 1000000);
+        var light2 = new THREE.AmbientLight(0xFFFFFF, 0.7);
+        light.position.set(0, 0, 100)
+        scene.add(light);
+        scene.add(light2);
+
+        var render = () => {
+            requestAnimationFrame(render);
+            renderer.render(scene, camera);
+            if (pause) {
+                return;
+            }
+
+            bubbles.forEach(b => {
+                if (b.position.y > 4.8) {
+                    resetGame();
+                }
+                b.rotation.y += 0.2;
+                b.rotation.x += -0.2;
+                b.position.y += 0.05 * Math.exp(speedMultiplier / 750);
+                speedMultiplier += 1.2 / speedMultiplier
+            })
+        }
+
+        render();
+
+        onMouseMove = event => {
+            event.preventDefault();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            var intersects = raycaster.intersectObjects(scene.children, true);
+            intersects.forEach((intersect, index) => {
+                if (pause) {
+                    return;
+                }
+                this.tl.to(intersect.object.scale, 0.05, { x: 2, y: 2, z: 2, ease: Expo.easeOut })
+                    .eventCallback('onComplete', () => {
+                        score += 100;
+                        updateScore();
+                        bubbles = bubbles.filter(b => b.idBubble !== intersect.object.idBubble);
+                        scene.remove(intersect.object)
+                    });
+            })
+        }
+
+        window.addEventListener('mousedown', onMouseMove);
+    </script>
+</body>
+
+</html>

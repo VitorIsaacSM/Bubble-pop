@@ -1,0 +1,70 @@
+body {
+    margin: 0;
+    height: 100vh;
+    background-image: url('ocean.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+#tab {
+    box-sizing: border-box;
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: transparent;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#tab span {
+    font-size: 2rem;
+    color: red;
+    text-shadow: 1px 1px 2px black;
+}
+
+#pause {
+    cursor: pointer;
+}
+
+#score {
+    margin-right: 50px;
+}
+
+canvas {
+    z-index: 10;
+    display: block;
+}
+
+.pisca {
+    opacity: 0;
+    animation: pisca 1s 4;
+}
+
+@keyframes pisca {
+    0% {
+        opacity: 0;
+    }
+
+    25% {
+        opacity: 1;
+    }
+    
+    50% {
+        opacity: 1;
+    }
+
+    75% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+.hidden {
+    display: none;
+}
