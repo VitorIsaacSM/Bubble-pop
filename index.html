@@ -84,15 +84,15 @@
 
         var bubbles = [];
         var geometry = new THREE.SphereGeometry(1, 25, 25);
-        var speedMultiplier = 1.0001;
+        var speedMultiplier = 1.5;
 
         createSingleBubble = () => {
             if (!document.hasFocus() || pause) {
                 return;
             }
             const newBubble = new THREE.Mesh(geometry);
-            newBubble.position.set(getRandomNumberWithRange(-6, 6), -10, 0);
-            newBubble.material = new THREE.MeshPhongMaterial({ color: '#34b1eb', transparent: true, opacity: getRandomNumberWithRange(2, 8) / 10 })
+            newBubble.position.set(getRandomNumberWithRange(-6, 6), -10, getRandomNumberWithRange(-4, 2));
+            newBubble.material = new THREE.MeshPhongMaterial({ color: '#34b1eb', transparent: true, opacity: getRandomNumberWithRange(3, 7) / 10 })
             newBubble.idBubble = bubbleIndex;
             bubbleIndex++;
             bubbles.push(newBubble);
@@ -125,8 +125,9 @@
                 }
                 b.rotation.y += 0.2;
                 b.rotation.x += -0.2;
-                b.position.y += 0.05 * Math.exp(speedMultiplier / 750);
-                speedMultiplier += 1.2 / speedMultiplier
+                console.log( 0.06 * Math.exp(speedMultiplier / 600));
+                b.position.y += 0.06 * Math.exp(speedMultiplier / 600);
+                speedMultiplier += 3 / (speedMultiplier*0.5)
             })
         }
 
