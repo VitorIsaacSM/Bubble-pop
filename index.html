@@ -7,9 +7,16 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Bubble Pop</title>
     <link rel="stylesheet" href="css/main.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
 </head>
 
-<body>
+<body id="body">
     <div id="tab">
         <div>
             <span id="score"></span>
@@ -20,8 +27,25 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/102/three.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.2/TweenMax.min.js"></script>
+    <script src="vanta.min.js"></script>
     <script>
-        if(!localStorage.getItem('highScore')) {
+        VANTA.FOG({
+            el: "#body",
+            mouseControls: true,
+            touchControls: true,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            highlightColor: 0x3bcfc6,
+            midtoneColor: 0x527ecf,
+            lowlightColor: 0x5d94c5,
+            baseColor: 0x4181bb,
+            blurFactor: 0.76,
+            speed: 5.00,
+            zoom: 2.00
+        })
+    </script>
+    <script>
+        if (!localStorage.getItem('highScore')) {
             localStorage.setItem('highScore', '0');
         }
         var pause = true;
@@ -30,6 +54,7 @@
         var score = 0;
         var scene = new THREE.Scene();
         var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        var popSound = new Audio('pop.mp3');
         camera.position.z = 5;
 
 
@@ -51,10 +76,10 @@
         pauseButton.addEventListener('click', () => {
             document.getElementById('msg').classList.replace('pisca', 'hidden');
             pause = !pause
-            if(!pause && score === 0) {
+            if (!pause && score === 0) {
                 document.getElementById('msg').classList.replace('hidden', 'pisca');
             }
-            if(pauseButton.textContent === 'Start') {
+            if (pauseButton.textContent === 'Start') {
                 pauseButton.textContent = 'Play/Pause'
             }
         });
@@ -74,12 +99,13 @@
             bubbles.forEach(b => scene.remove(b));
             bubbles = [];
             pause = true;
-            if(score > +localStorage.getItem('highScore')) {
+            if (score > +localStorage.getItem('highScore')) {
                 localStorage.setItem('highScore', score.toString());
             }
             score = 0;
             updateScore();
             document.getElementById('msg').classList.replace('pisca', 'hidden');
+            speedMultiplier = 1.5;
         }
 
         var bubbles = [];
@@ -91,9 +117,10 @@
                 return;
             }
             const newBubble = new THREE.Mesh(geometry);
-            newBubble.position.set(getRandomNumberWithRange(-6, 6), -10, getRandomNumberWithRange(-4, 2));
-            newBubble.material = new THREE.MeshPhongMaterial({ color: '#34b1eb', transparent: true, opacity: getRandomNumberWithRange(3, 7) / 10 })
+            newBubble.position.set(getRandomNumberWithRange(-6, 6), getRandomNumberWithRange(-8, -12), getRandomNumberWithRange(-4, -1));
+            newBubble.material = new THREE.MeshPhongMaterial({ color: '#85a8f9', transparent: true, opacity: getRandomNumberWithRange(3, 7) / 10 })
             newBubble.idBubble = bubbleIndex;
+            newBubble.rotationDirection = Math.random() > 0.5 ? 1 : -1;
             bubbleIndex++;
             bubbles.push(newBubble);
             scene.add(newBubble);
@@ -120,14 +147,13 @@
             }
 
             bubbles.forEach(b => {
-                if (b.position.y > 4.8) {
+                if (b.position.y > (5 - b.position.z)) {
                     resetGame();
                 }
-                b.rotation.y += 0.2;
-                b.rotation.x += -0.2;
-                console.log( 0.06 * Math.exp(speedMultiplier / 600));
+                b.rotation.y += (Math.random() / 10) * b.rotationDirection;
                 b.position.y += 0.06 * Math.exp(speedMultiplier / 600);
-                speedMultiplier += 3 / (speedMultiplier*0.5)
+                b.translateX(speedMultiplier / 5000);
+                speedMultiplier += 4 / (speedMultiplier * 0.5)
             })
         }
 
@@ -135,21 +161,27 @@
 
         onMouseMove = event => {
             event.preventDefault();
+            if (pause) {
+                return;
+            }
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
             var intersects = raycaster.intersectObjects(scene.children, true);
-            intersects.forEach((intersect, index) => {
-                if (pause) {
-                    return;
-                }
-                this.tl.to(intersect.object.scale, 0.05, { x: 2, y: 2, z: 2, ease: Expo.easeOut })
+            if (intersects.length) {
+                this.tl.to(intersects[0].object.scale, 0.05, { x: 2, y: 2, z: 2, ease: Expo.easeOut })
                     .eventCallback('onComplete', () => {
-                        score += 100;
-                        updateScore();
-                        bubbles = bubbles.filter(b => b.idBubble !== intersect.object.idBubble);
-                        scene.remove(intersect.object)
+                        requestAnimationFrame(() => scene.remove(intersects[0].object));
+                        popSound.play();
                     });
+            }
+            intersects.forEach((intersect, index) => {
+                score += 100;
+                updateScore();
+                bubbles = bubbles.filter(b => b.idBubble !== intersect.object.idBubble);
+                if (index !== 0) {
+                    scene.remove(intersect.object)
+                }
             })
         }
 

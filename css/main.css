@@ -17,6 +17,7 @@ body {
     position: absolute;
     top: 0;
     left: 0;
+    z-index: 2;
 }
 
 #tab span {
@@ -25,17 +26,21 @@ body {
     text-shadow: 1px 1px 2px black;
 }
 
+canvas:first-of-type {
+    opacity: 0.6;
+    z-index: 1;
+}
+
+canvas:not(:first-of-type) {
+    z-index: 10;
+}
+
 #pause {
     cursor: pointer;
 }
 
 #score {
     margin-right: 50px;
-}
-
-canvas {
-    z-index: 10;
-    display: block;
 }
 
 .pisca {
