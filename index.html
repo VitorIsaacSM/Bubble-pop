@@ -7,11 +7,11 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Bubble Pop</title>
     <link rel="stylesheet" href="css/main.css">
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="mask-icon" href="icons/safari-pinned-tab.svg" color="#5bbad5">
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
 </head>
@@ -118,7 +118,7 @@
             }
             const newBubble = new THREE.Mesh(geometry);
             newBubble.position.set(getRandomNumberWithRange(-6, 6), getRandomNumberWithRange(-8, -12), getRandomNumberWithRange(-4, -1));
-            newBubble.material = new THREE.MeshPhongMaterial({ color: '#85a8f9', transparent: true, opacity: getRandomNumberWithRange(3, 7) / 10 })
+            newBubble.material = new THREE.MeshPhongMaterial({ color: '#ffffff', transparent: true, opacity: getRandomNumberWithRange(3, 7) / 10 })
             newBubble.idBubble = bubbleIndex;
             newBubble.rotationDirection = Math.random() > 0.5 ? 1 : -1;
             bubbleIndex++;
@@ -134,7 +134,7 @@
 
         this.tl = new TimelineMax().delay(.3);
         var light = new THREE.SpotLight(0xFFFFFF, 1, 1000000);
-        var light2 = new THREE.AmbientLight(0xFFFFFF, 0.7);
+        var light2 = new THREE.AmbientLight(0xFFFFFF, 0.5);
         light.position.set(0, 0, 100)
         scene.add(light);
         scene.add(light2);
